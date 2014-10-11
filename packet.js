@@ -59,19 +59,22 @@ var Packet = module.exports = function() {
 };
 
 var LABEL_POINTER = 0xC0;
+var MAX_RECURSION = 16;
 
 var isPointer = function(len) {
   return (len & LABEL_POINTER) === LABEL_POINTER;
 };
 
 function nameUnpack(buff) {
-  var len, comp, end, pos, part, combine = '';
+  var len, comp, end, pos, part,recursion, combine = '';
 
   len = buff.readUInt8();
   comp = false;
   end = buff.tell();
+  recursion = 0;
 
   while (len !== 0) {
+    assert(recursion++ < MAX_RECURSION, 'Refusing to follow overly deep name recursion.');
     if (isPointer(len)) {
       len -= LABEL_POINTER;
       len = len << 8;
